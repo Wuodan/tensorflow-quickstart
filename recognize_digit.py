@@ -44,7 +44,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Load the pre-trained model
-    model = tf.keras.models.load_model('trained_model.h5')
+    model = tf.keras.models.load_model('improved_model.h5')
 
     # Perform digit recognition
     recognized_digit, input_size = recognize_digit(args.input_image, model)

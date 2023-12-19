@@ -25,7 +25,7 @@ WORKDIR /app
 COPY recognize_digit.py /app/recognize_digit.py
 
 # Copy only the necessary files from the builder stage
-COPY --from=builder /app/trained_model.h5 /app/trained_model.h5
+COPY --from=builder /app/improved_model.h5 /app/improved_model.h5
 
 # Specify the command to run the Python script
 CMD ["python", "recognize_digit.py"]
