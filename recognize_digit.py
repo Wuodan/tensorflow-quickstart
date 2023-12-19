@@ -28,26 +28,15 @@ def recognize_digit(image_path, model):
     pad_width = (28 - target_size[0]) // 2, (28 - target_size[1]) // 2
     input_image_resized_padded = tf.pad(input_image_resized, [[pad_width[1], pad_width[1]], [pad_width[0], pad_width[0]], [0, 0]])
 
-
-    # Generate the output filename in the same folder as the input image
-    input_filename, input_extension = os.path.splitext(os.path.basename(image_path))
-    output_filename = f"{input_filename}-final.jpg"
-    output_path = os.path.join(os.path.dirname(image_path), output_filename)
-
-    # Save the final image
-    Image.fromarray((input_image_resized_padded.numpy() * 255).astype('uint8').squeeze()).save(output_path)
-
-
-
+    # Resize to (28, 28)
+    input_image_resized_padded = tf.image.resize(input_image_resized_padded, (28, 28))
 
     # Make predictions using the pre-trained model
     predictions = model.predict(tf.expand_dims(input_image_resized_padded, axis=0), verbose=0)
-    # same with progress bar
-    # predictions = model.predict(tf.expand_dims(input_image_resized_padded, axis=0))
 
     # Get the recognized digit
     recognized_digit = tf.argmax(predictions, axis=1).numpy()[0]
-    return recognized_digit, input_size, output_filename
+    return recognized_digit, input_size
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Recognize a digit from a variable-sized input image.")
@@ -58,8 +47,7 @@ if __name__ == "__main__":
     model = tf.keras.models.load_model('trained_model.h5')
 
     # Perform digit recognition
-    recognized_digit, input_size, output_filename = recognize_digit(args.input_image, model)
+    recognized_digit, input_size = recognize_digit(args.input_image, model)
 
-    # Print the recognized digit, input image size, and the final image path
+    # Print the recognized digit and input image size
     print(f"Recognized digit: {recognized_digit}, Input image size: {input_size}")
-
