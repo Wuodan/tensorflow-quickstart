@@ -1,0 +1,54 @@
+import argparse
+import tensorflow as tf
+
+def load_and_preprocess_image(image_path, target_height=28, target_width=28):
+    # Function to load and preprocess the input image with aspect ratio preservation
+    # You may need to customize this based on your requirements
+    image = tf.io.read_file(image_path)
+    image = tf.image.decode_image(image, channels=1)
+    
+    # Calculate new dimensions while preserving the aspect ratio
+    original_height, original_width = tf.shape(image)[0], tf.shape(image)[1]
+    aspect_ratio = tf.cast(original_width, tf.float32) / tf.cast(original_height, tf.float32)
+    
+    new_width = tf.cast(target_width, tf.float32)
+    new_height = tf.cast(target_width / aspect_ratio, tf.float32)
+    
+    # Resize the image
+    image = tf.image.resize(image, [tf.cast(new_height, tf.int32), tf.cast(new_width, tf.int32)])
+    
+    # Normalize to [0, 1]
+    image = image / 255.0
+    
+    # Add batch dimension
+    image = tf.expand_dims(image, axis=0)
+    
+    return image
+
+def recognize_digit(image_path, model):
+    # Load and preprocess the input image
+    input_image = load_and_preprocess_image(image_path)
+
+    # Make predictions using the pre-trained model
+    predictions = model.predict(input_image)
+
+    # Debugging: Print raw predictions
+    print("Raw predictions:", predictions)
+
+    # Get the recognized digit
+    recognized_digit = tf.argmax(predictions, axis=1).numpy()[0]
+    return recognized_digit
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Recognize a digit from an input image.")
+    parser.add_argument("--input_image", type=str, required=True, help="Path to the input image")
+    args = parser.parse_args()
+
+    # Load the pre-trained model from the Docker image
+    model = tf.keras.models.load_model("/app/trained_model")
+
+    # Perform digit recognition
+    recognized_digit = recognize_digit(args.input_image, model)
+
+    # Print the recognized digit
+    print("Recognized digit:", recognized_digit)
