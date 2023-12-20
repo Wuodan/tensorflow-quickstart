@@ -11,12 +11,13 @@ import glob
 import re
 
 # Recognize a digit from a variable-sized input image
+@tf.function
 def recognize_digit(image, model):
     # Load and preprocess the input image
-    input_image_array = image / 255.0  # Normalize to [0, 1]
+    input_image_array = tf.cast(image, tf.float32) / 255.0  # Explicitly cast to tf.float32 and normalize to [0, 1]
 
     # Make predictions using the pre-trained model
-    predictions = model.predict(tf.expand_dims(input_image_array, axis=0), verbose=0)
+    predictions = model(tf.expand_dims(input_image_array, axis=0), training=False)
 
     # Get the recognized digit
     recognized_digit = tf.argmax(predictions, axis=1).numpy()[0]
@@ -29,6 +30,7 @@ if __name__ == "__main__":
 
     # Load the pre-trained models
     pattern = re.compile(r'trained_model_(.+)\.h5')
+    models = {pattern.search(file_name).group(1): tf.keras.models.load_model(file_name) for file_name in glob.glob('trained_model_*.h5')}
 
     # Load MNIST dataset
     mnist_data = np.load(args.mnist_file)
@@ -45,10 +47,7 @@ if __name__ == "__main__":
             image = x_test[i]
 
             # Loop over all models
-            for file_name in glob.glob('trained_model_*.h5'):
-                model_name = pattern.search(file_name).group(1)
-                model = tf.keras.models.load_model(file_name)
-
+            for model_name, model in models.items():
                 # Perform digit recognition
                 recognized_digit = recognize_digit(image, model)
 
