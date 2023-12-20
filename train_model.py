@@ -36,6 +36,12 @@ def create_model_improved(input_shape):
     return model
 
 def prepare_model(model_function, model_name):
+    # Load and preprocess the MNIST dataset
+    x_train, y_train, _, _ = load_and_preprocess_mnist()
+
+    # Set a fixed size for the last dimension of the input shape
+    last_dimension_size = 1  # 1 for grayscale, adjust based on your images
+
     # Create the model
     model = model_function((28, 28, last_dimension_size))
     # Compile the model
@@ -49,12 +55,6 @@ def prepare_model(model_function, model_name):
     model.save(f"trained_model_{model_name}.h5")
 
 if __name__ == "__main__":
-    # Load and preprocess the MNIST dataset
-    x_train, y_train, _, _ = load_and_preprocess_mnist()
-
-    # Set a fixed size for the last dimension of the input shape
-    last_dimension_size = 1  # 1 for grayscale, adjust based on your images
-
     # Prepare the models
-    prepare_model((create_model_basic), 'basic')
-    prepare_model((create_model_improved), 'improved')
+    prepare_model(create_model_basic, 'basic')
+    prepare_model(create_model_improved, 'improved')
