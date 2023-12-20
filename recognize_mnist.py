@@ -40,17 +40,13 @@ if __name__ == "__main__":
     mnist_data = np.load(args.mnist_file)
     x_test, y_test = mnist_data['x_test'], mnist_data['y_test']
 
-    # Combine data for sorting
-    combined_data = list(zip(x_test, y_test))
+    # Loop over all images in the MNIST dataset
+    for i in range(len(x_test)):
+        image, true_label = x_test[i], y_test[i]
 
-    # Sort the data by true label and model name
-    sorted_data = sorted(combined_data, key=lambda x: (x[1], x[0].tobytes()))
-
-    # Loop over all images in the sorted MNIST dataset
-    for image, true_label in sorted_data:
         for model_name, model in models_data:
             # Perform digit recognition
             recognized_digit = recognize_digit(image, model)
 
-            # Print the recognized digit, true label, model name, and image index
-            print(f"True label: {true_label}, Recognized digit: {recognized_digit}, model-name: {model_name}")
+            # Print the recognized digit, true label, model name, and MNIST index
+            print(f"MNIST index: {i}, True label: {true_label}, Recognized digit: {recognized_digit}, model-name: {model_name}")
