@@ -4,7 +4,7 @@ FROM tensorflow/tensorflow:latest AS builder
 # Set the working directory in the builder stage
 WORKDIR /app
 
-# Copy the Python script into the builder stage
+# Copy the Python scripts into the builder stage
 COPY train_model.py /app/train_model.py
 
 # Download the MNIST dataset
@@ -22,10 +22,10 @@ RUN pip install Pillow
 # Set the working directory in the final stage
 WORKDIR /app
 
+# Copy Python scripts and MNIST dataset
 COPY recognize_mnist.py /app/recognize_mnist.py
-
-# Copy only the necessary files from the builder stage
-COPY --from=builder /app/trained_model_*.h5 /app
+COPY --from=builder /app/trained_model_*.h5 /app/
+COPY --from=builder /root/.keras/datasets/mnist.npz /root/.keras/datasets/mnist.npz
 
 # Specify the command to run the Python script
-CMD ["python", "/app/recognize_mnist.py"]
+CMD ["python", "recognize_mnist.py", "--mnist_folder", "/root/.keras/datasets/"]

@@ -2,55 +2,43 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+import argparse
 import tensorflow as tf
-import numpy as np
-from tensorflow.keras.datasets import mnist
-from tensorflow.keras.models import load_model
+from PIL import Image
 
-# Load the MNIST dataset
-(_, _), (x_test, y_test) = mnist.load_data()
-x_test = x_test / 255.0  # Normalize to [0, 1]
+import glob
+import re
 
-# Load the pre-trained models
-model_basic = load_model('trained_model_basic.h5')
-model_improved = load_model('trained_model_improved.h5')
+# Recognize a digit from a variable-sized input image
+def recognize_digit(image_path, model):
+    # Load and preprocess the input image
+    input_image = Image.open(image_path)
 
-# Initialize counters
-total_images = np.zeros(10)
-correct_basic = np.zeros(10)
-correct_improved = np.zeros(10)
+    input_image_array = tf.keras.preprocessing.image.img_to_array(input_image)
+    input_image_array = input_image_array / 255.0  # Normalize to [0, 1]
 
-# Loop over the entire MNIST dataset
-for i in range(len(x_test)):
-    label = y_test[i]
-    total_images[label] += 1
-
-    # Preprocess the input image
-    input_image = x_test[i]
-    input_image = tf.image.resize(input_image, (28, 28))
-    input_image = tf.expand_dims(input_image, axis=0)
-    input_image = tf.expand_dims(input_image, axis=-1)
-
-    # Make predictions using the pre-trained models
-    predictions_basic = model_basic.predict(input_image, verbose=0)
-    predictions_improved = model_improved.predict(input_image, verbose=0)
+    # Make predictions using the pre-trained model
+    predictions = model.predict(tf.expand_dims(input_image_array, axis=0), verbose=0)
 
     # Get the recognized digit
-    recognized_digit_basic = np.argmax(predictions_basic)
-    recognized_digit_improved = np.argmax(predictions_improved)
+    recognized_digit = tf.argmax(predictions, axis=1).numpy()[0]
+    return recognized_digit
 
-    # Check correctness and update counters
-    if recognized_digit_basic == label:
-        correct_basic[label] += 1
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Recognize a digit from a variable-sized input image.")
+    parser.add_argument("--mnist_folder", type=str, required=True, help="Path to the MNIST dataset folder")
+    args = parser.parse_args()
 
-    if recognized_digit_improved == label:
-        correct_improved[label] += 1
+    # Load the pre-trained models
+    pattern = re.compile(r'trained_model_(.+)\.h5')
+    for file_name in glob.glob('trained_model_*.h5'):
+        model_name = pattern.search(file_name).group(1)
+        model = tf.keras.models.load_model(file_name)
 
-# Calculate recognition rates
-recognition_rate_basic = correct_basic / total_images
-recognition_rate_improved = correct_improved / total_images
+        # Loop over all images in the MNIST dataset folder
+        for image_file in glob.glob(os.path.join(args.mnist_folder, '*.png')):
+            # Perform digit recognition
+            recognized_digit = recognize_digit(image_file, model)
 
-# Print results
-print("Label\tTotal Images\tRecognition Rate (Basic)\tRecognition Rate (Improved)")
-for label in range(10):
-    print(f"{label}\t{total_images[label]}\t\t{recognition_rate_basic[label]:.4f}\t\t\t{recognition_rate_improved[label]:.4f}")
+            # Print the recognized digit and image file name
+            print(f"Recognized digit: {recognized_digit}, model-name: {model_name}, image: {image_file}")
