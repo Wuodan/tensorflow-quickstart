@@ -1,8 +1,0 @@
-import argparse
-import tensorflow as tf
-
-# Recognize a digit from a variable-sized input image
-def recognize_digit(image_path, model):
-    # Load and preprocess the input image
-    input_image = tf.keras.preprocessing.image.load_img(image_path, target_size=None)
-    input_image = tf.keras.preprocessing.image.img
