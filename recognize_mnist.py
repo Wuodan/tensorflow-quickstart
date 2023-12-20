@@ -4,7 +4,6 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import argparse
 import tensorflow as tf
-from PIL import Image
 import numpy as np
 
 import glob
@@ -20,36 +19,38 @@ def recognize_digit(image, model):
     predictions = model(tf.expand_dims(input_image_array, axis=0), training=False)
 
     # Get the recognized digit
-    recognized_digit = tf.argmax(predictions, axis=1).numpy()[0]
+    recognized_digit = tf.argmax(predictions, axis=1)[0]
     return recognized_digit
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Recognize digits from the MNIST dataset using pre-trained models.")
+    parser = argparse.ArgumentParser(description="Recognize a digit from a variable-sized input image.")
     parser.add_argument("--mnist_file", type=str, required=True, help="Path to the MNIST dataset file (mnist.npz)")
     args = parser.parse_args()
 
     # Load the pre-trained models
     pattern = re.compile(r'trained_model_(.+)\.h5')
-    models = {pattern.search(file_name).group(1): tf.keras.models.load_model(file_name) for file_name in glob.glob('trained_model_*.h5')}
+    models_data = []
+
+    for file_name in glob.glob('trained_model_*.h5'):
+        model_name = pattern.search(file_name).group(1)
+        model = tf.keras.models.load_model(file_name)
+        models_data.append((model_name, model))
 
     # Load MNIST dataset
     mnist_data = np.load(args.mnist_file)
     x_test, y_test = mnist_data['x_test'], mnist_data['y_test']
 
-    # Loop over all unique labels in the MNIST dataset
-    unique_labels = set(y_test)
-    for true_label in unique_labels:
-        # Filter images with the current label
-        label_indices = np.where(y_test == true_label)[0]
+    # Combine data for sorting
+    combined_data = list(zip(x_test, y_test))
 
-        # Loop over images with the current label
-        for i in label_indices:
-            image = x_test[i]
+    # Sort the data by true label and model name
+    sorted_data = sorted(combined_data, key=lambda x: (x[1], x[0].tobytes()))
 
-            # Loop over all models
-            for model_name, model in models.items():
-                # Perform digit recognition
-                recognized_digit = recognize_digit(image, model)
+    # Loop over all images in the sorted MNIST dataset
+    for image, true_label in sorted_data:
+        for model_name, model in models_data:
+            # Perform digit recognition
+            recognized_digit = recognize_digit(image, model)
 
-                # Print the recognized digit, true label, model name, and index
-                print(f"True label: {true_label}, Recognized digit: {recognized_digit}, model-name: {model_name}, Index: {i}")
+            # Print the recognized digit, true label, model name, and image index
+            print(f"True label: {true_label}, Recognized digit: {recognized_digit}, model-name: {model_name}")
