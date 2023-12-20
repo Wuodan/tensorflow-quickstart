@@ -32,9 +32,9 @@ if __name__ == "__main__":
     models_data = {}
 
     for file_name in glob.glob('trained_model_*.h5'):
-    model_name = pattern.search(file_name).group(1)
-    model = tf.keras.models.load_model(file_name)
-    models_data[model_name] = model
+        model_name = pattern.search(file_name).group(1)
+        model = tf.keras.models.load_model(file_name)
+        models_data[model_name] = model
 
     # Load MNIST dataset
     mnist_data = np.load(args.mnist_file)
@@ -44,42 +44,33 @@ if __name__ == "__main__":
     total_files = len(x_test)
     padding_width = len(str(total_files))
 
-    # Initialize counters for correct and total predictions per model and label
-    correct_predictions_count = {model_name: {label: 0 for label in range(10)} for model_name, _ in models_data}
-    total_predictions_count = {model_name: {label: 0 for label in range(10)} for model_name, _ in models_data}
+    # Create a dictionary to count correct predictions for each model and label
+    correct_predictions_count = {model_name: {label: 0 for label in range(10)} for model_name in models_data.keys()}
 
     # Loop over all images in the MNIST dataset
     for i in range(total_files):
         image = x_test[i]
-        true_label = y_test[i]
 
-        for model_name in models_data:
-            model = models_data[model_name]
-            
+        for model_name, model in models_data.items():
             # Perform digit recognition
             recognized_digit = recognize_digit(image, model)
 
             # Check if the recognized digit is correct
-            if recognized_digit == true_label:
-                correct_predictions_count[model_name][true_label] += 1
+            if recognized_digit == y_test[i]:
+                correct_predictions_count[model_name][y_test[i]] += 1
 
-            total_predictions_count[model_name][true_label] += 1
+            # Pad the index with zeros to ensure a consistent string length
+            padded_index = str(i).zfill(padding_width)
 
-            # Check if the recognized digit is incorrect
-            if recognized_digit != true_label:
-                # Pad the index with zeros to ensure a consistent string length
-                padded_index = str(i).zfill(padding_width)
+            # Print the MNIST index, true label, recognized digit, model name
+            print(f"MNIST index: {padded_index}, True label: {y_test[i]}, Recognized digit: {recognized_digit}, model-name: {model_name}")
 
-                # Print the MNIST index, true label, recognized digit, model name
-                print(f"MNIST index: {padded_index}, True label: {true_label}, Recognized digit: {recognized_digit}, model-name: {model_name}")
-
-    # Print total images
-    print(f"Total Images: {total_files}")
-
-    # Print recognition ratio per model and label
-    for model_name in models_data:
+    # Output total images and recognition ratio per model and label
+    print("\nTotal Images:", total_files)
+    for model_name, model in models_data.items():
+        print(f"\nRecognition ratio for model {model_name}:")
         for label in range(10):
-            correct_count = correct_predictions_count[model_name][label]
-            total_count = total_predictions_count[model_name][label]
-            recognition_ratio = correct_count / total_count if total_count > 0 else 0
-            print(f"Model: {model_name}, Label: {label}, Recognition Ratio: {recognition_ratio:.2%}")
+            total_label_images = np.sum(y_test == label)
+            correct_label_predictions = correct_predictions_count[model_name][label]
+            recognition_ratio = correct_label_predictions / total_label_images if total_label_images > 0 else 0
+            print(f"Label {label}: {recognition_ratio:.4f} ({correct_label_predictions}/{total_label_images} correct)")
