@@ -68,9 +68,18 @@ if __name__ == "__main__":
     # Output total images and recognition ratio per model and label
     print("\nTotal Images:", total_files)
     for model_name, model in models_data.items():
-        print(f"\nRecognition ratio for model {model_name}:")
+        total_correct_predictions = sum(correct_predictions_count[model_name][label] for label in range(10))
+        total_recognition_ratio = total_correct_predictions / total_files
+        print(f"\nRecognition ratio for model {model_name}: {total_recognition_ratio:.4f} ({total_correct_predictions}/{total_files} correct)")
         for label in range(10):
-            total_label_images = np.sum(y_test == label)
+            label_images = np.sum(y_test == label)
             correct_label_predictions = correct_predictions_count[model_name][label]
-            recognition_ratio = correct_label_predictions / total_label_images if total_label_images > 0 else 0
-            print(f"Label {label}: {recognition_ratio:.4f} ({correct_label_predictions}/{total_label_images} correct)")
+            recognition_ratio = correct_label_predictions / label_images if label_images > 0 else 0
+            print(f"Label {label}: {recognition_ratio:.4f} ({correct_label_predictions}/{label_images} correct)")
+
+    # Output total recognition ratio per model
+    print("\nTotal Recognition Ratio:")
+    for model_name, model in models_data.items():
+        total_correct_predictions = sum(correct_predictions_count[model_name][label] for label in range(10))
+        total_recognition_ratio = total_correct_predictions / total_files
+        print(f"Model {model_name}: {total_recognition_ratio:.4f} ({total_correct_predictions}/{total_files} correct)")
