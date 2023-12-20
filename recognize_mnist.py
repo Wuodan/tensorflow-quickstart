@@ -50,6 +50,10 @@ if __name__ == "__main__":
     # Create a confusion matrix for each model
     confusion_matrices = {model_name: np.zeros((10, 10), dtype=np.int32) for model_name in models_data.keys()}
 
+    # Create a folder for error files
+    error_folder = 'error_files'
+    os.makedirs(error_folder, exist_ok=True)
+
     # Loop over all images in the MNIST dataset
     for i in range(total_files):
         image = x_test[i]
@@ -68,8 +72,18 @@ if __name__ == "__main__":
                 # Pad the index with zeros to ensure a consistent string length
                 padded_index = str(i).zfill(padding_width)
 
+                # Generate error file name
+                error_file_name = f"{y_test[i]}_{recognized_digit}_{padded_index}.png"
+
+                # Save the error file to the 'error_files' folder
+                error_file_path = os.path.join(error_folder, error_file_name)                
+                # Add an additional axis to represent the channel
+                image_with_channel = tf.expand_dims(image, axis=-1)
+                # Save the single-channel image
+                tf.keras.preprocessing.image.save_img(error_file_path, tf.convert_to_tensor(image_with_channel).numpy())
+
                 # Print the MNIST index, true label, recognized digit, model name
-                print(f"MNIST index: {padded_index}, True label: {y_test[i]}, Recognized digit: {recognized_digit}, model-name: {model_name}")
+                print(f"MNIST index: {padded_index}, True label: {y_test[i]}, Recognized digit: {recognized_digit}, model-name: {model_name}, Error file saved: {error_file_path}")
 
     # Output total images and recognition ratio per model and label
     print("\nTotal Images:", total_files)
