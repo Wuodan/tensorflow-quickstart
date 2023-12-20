@@ -7,6 +7,9 @@ import tensorflow as tf
 from PIL import Image
 import numpy as np
 
+import glob
+import re
+
 # Recognize a digit from a variable-sized input image
 def recognize_digit(image, model):
     # Load and preprocess the input image
