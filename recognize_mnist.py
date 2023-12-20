@@ -52,8 +52,11 @@ if __name__ == "__main__":
             # Perform digit recognition
             recognized_digit = recognize_digit(image, model)
 
-            # Pad the index with zeros to ensure a consistent string length
-            padded_index = str(i).zfill(padding_width)
+            # Check if the recognized digit is correct
+            if recognized_digit != true_label:
+                # Pad the index with zeros to ensure a consistent string length
+                padded_index = str(i).zfill(padding_width)
 
-            # Print the MNIST index, true label, recognized digit, model name
-            print(f"MNIST index: {padded_index}, True label: {true_label}, Recognized digit: {recognized_digit}, model-name: {model_name}")
+                # Print the MNIST index, true label, recognized digit, model name
+                print(f"MNIST index: {padded_index}, True label: {true_label}, Recognized digit: {recognized_digit}, model-name: {model_name}")
+
