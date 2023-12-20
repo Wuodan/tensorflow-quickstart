@@ -28,4 +28,5 @@ COPY --from=builder /app/trained_model_*.h5 /app/
 COPY --from=builder /root/.keras/datasets/mnist.npz /root/.keras/datasets/mnist.npz
 
 # Specify the command to run the Python script
-CMD ["python", "recognize_mnist.py", "--mnist_folder", "/root/.keras/datasets/"]
+CMD ["python", "recognize_mnist.py", "--mnist_file", "/root/.keras/datasets/mnist.npz"]
+
