@@ -58,12 +58,12 @@ if __name__ == "__main__":
             # Check if the recognized digit is correct
             if recognized_digit == y_test[i]:
                 correct_predictions_count[model_name][y_test[i]] += 1
+            else:
+                # Pad the index with zeros to ensure a consistent string length
+                padded_index = str(i).zfill(padding_width)
 
-            # Pad the index with zeros to ensure a consistent string length
-            padded_index = str(i).zfill(padding_width)
-
-            # Print the MNIST index, true label, recognized digit, model name
-            print(f"MNIST index: {padded_index}, True label: {y_test[i]}, Recognized digit: {recognized_digit}, model-name: {model_name}")
+                # Print the MNIST index, true label, recognized digit, model name
+                print(f"MNIST index: {padded_index}, True label: {y_test[i]}, Recognized digit: {recognized_digit}, model-name: {model_name}")
 
     # Output total images and recognition ratio per model and label
     print("\nTotal Images:", total_files)
