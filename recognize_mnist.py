@@ -40,13 +40,20 @@ if __name__ == "__main__":
     mnist_data = np.load(args.mnist_file)
     x_test, y_test = mnist_data['x_test'], mnist_data['y_test']
 
+    # Calculate the width needed for padding based on the total number of files
+    total_files = len(x_test)
+    padding_width = len(str(total_files))
+
     # Loop over all images in the MNIST dataset
-    for i in range(len(x_test)):
+    for i in range(total_files):
         image, true_label = x_test[i], y_test[i]
 
         for model_name, model in models_data:
             # Perform digit recognition
             recognized_digit = recognize_digit(image, model)
 
-            # Print the recognized digit, true label, model name, and MNIST index
-            print(f"MNIST index: {i}, True label: {true_label}, Recognized digit: {recognized_digit}, model-name: {model_name}")
+            # Pad the index with zeros to ensure a consistent string length
+            padded_index = str(i).zfill(padding_width)
+
+            # Print the MNIST index, true label, recognized digit, model name
+            print(f"MNIST index: {padded_index}, True label: {true_label}, Recognized digit: {recognized_digit}, model-name: {model_name}")
