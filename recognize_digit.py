@@ -3,8 +3,11 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import argparse
-import tensorflow as tf
+import tensorflow as tf 
 from PIL import Image
+
+import glob
+import re
 
 # Recognize a digit from a variable-sized input image
 def recognize_digit(image_path, model):
@@ -43,11 +46,16 @@ if __name__ == "__main__":
     parser.add_argument("--input_image", type=str, required=True, help="Path to the input image")
     args = parser.parse_args()
 
-    # Load the pre-trained model
-    model = tf.keras.models.load_model('improved_model.h5')
+    # Load the pre-trained models
+    pattern = re.compile(r'trained_model_(.+)\.h5')
+    for file_name in glob.glob('trained_model_*.h5'):
+        
+        model_name = pattern.search(file_name).group(1)
+    
+        model = tf.keras.models.load_model(file_name)
 
-    # Perform digit recognition
-    recognized_digit, input_size = recognize_digit(args.input_image, model)
+        # Perform digit recognition
+        recognized_digit, input_size = recognize_digit(args.input_image, model)
 
-    # Print the recognized digit and input image size
-    print(f"Recognized digit: {recognized_digit}, Input image size: {input_size}")
+        # Print the recognized digit and input image size
+        print(f"Recognized digit: {recognized_digit}, model-name: {model_name}")
