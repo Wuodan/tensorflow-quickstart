@@ -47,6 +47,9 @@ if __name__ == "__main__":
     # Create a dictionary to count correct predictions for each model and label
     correct_predictions_count = {model_name: {label: 0 for label in range(10)} for model_name in models_data.keys()}
 
+    # Create a confusion matrix for each model
+    confusion_matrices = {model_name: np.zeros((10, 10), dtype=np.int32) for model_name in models_data.keys()}
+
     # Loop over all images in the MNIST dataset
     for i in range(total_files):
         image = x_test[i]
@@ -59,6 +62,9 @@ if __name__ == "__main__":
             if recognized_digit == y_test[i]:
                 correct_predictions_count[model_name][y_test[i]] += 1
             else:
+                # Update the confusion matrix
+                confusion_matrices[model_name][y_test[i], recognized_digit] += 1
+
                 # Pad the index with zeros to ensure a consistent string length
                 padded_index = str(i).zfill(padding_width)
 
@@ -77,9 +83,6 @@ if __name__ == "__main__":
             recognition_ratio = correct_label_predictions / label_images if label_images > 0 else 0
             print(f"Label {label}: {recognition_ratio:.4f} ({correct_label_predictions}/{label_images} correct)")
 
-    # Output total recognition ratio per model
-    print("\nTotal Recognition Ratio:")
-    for model_name, model in models_data.items():
-        total_correct_predictions = sum(correct_predictions_count[model_name][label] for label in range(10))
-        total_recognition_ratio = total_correct_predictions / total_files
-        print(f"Model {model_name}: {total_recognition_ratio:.4f} ({total_correct_predictions}/{total_files} correct)")
+    # Output confusion matrix for each model
+    for model_name, confusion_matrix in confusion_matrices.items():
+        print(f"\nConfusion Matrix for model {model_name}:\n{confusion_matrix}")
